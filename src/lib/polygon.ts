@@ -7,8 +7,7 @@
 function getApiKey() {
   const key = process.env.POLYGON_API_KEY || '';
   if (!key) {
-    console.error('[Polygon] POLYGON_API_KEY not found in process.env');
-    console.error('[Polygon] Available env vars:', Object.keys(process.env).filter(k => k.includes('POLYGON')));
+    console.error('[Polygon] POLYGON_API_KEY not configured');
   }
   return key;
 }

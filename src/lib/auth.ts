@@ -6,12 +6,50 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
+// Generate strong JWT secret in production
+if (!process.env.JWT_SECRET) {
+  console.warn('[Auth] JWT_SECRET not set. Using insecure fallback. Set JWT_SECRET in production!');
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const TOKEN_NAME = 'auth-token';
 
 export interface JWTPayload {
   userId: string;
   email: string;
+}
+
+export interface PasswordValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+/**
+ * Validate password strength
+ */
+export function validatePassword(password: string): PasswordValidationResult {
+  const errors: string[] = [];
+
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters long');
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errors.push('Password must contain at least one special character');
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
 }
 
 /**

@@ -2,51 +2,57 @@
 
 > **One screen to see, explain, and export the market — powered by polygon.io**
 
-Pulseboard is a modern financial web application that provides real-time market data, intelligent analysis, and customizable alerts. Built with Next.js 14, TypeScript, and polygon.io data.
+Pulseboard is a modern financial web application that provides real-time market data, intelligent analysis, and customizable watchlists. Built with Next.js 14, TypeScript, and polygon.io data.
 
 ![Dark Mode First](https://img.shields.io/badge/dark%20mode-first-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![Production Ready](https://img.shields.io/badge/production-ready-green)
 
 ---
 
 ## ✨ Features
 
-### V1 (Implemented)
+### Core Features
 
 - **📈 Market Dashboard**
   - Real-time market status (open/closed)
-  - Top gainers and losers with live updates
+  - Top gainers and losers with previous day data
   - Multi-asset support (Equity, Options, Crypto tabs)
-  - Auto-refresh every 30 seconds
+  - Fixed layout to prevent shifts
 
 - **🔍 Instruments Page**
   - Global smart search across all tickers
-  - Intraday price charts with 5-minute bars
-  - Live news timeline with sentiment detection
+  - 30-day price charts with Highcharts
+  - Live news timeline
   - "Explain this move" - AI-powered price movement analysis
-  - CSV export for any instrument view
+  - Add to watchlist functionality
 
-- **🔔 Alerts System**
-  - Create price, volume, and options alerts
-  - Multiple trigger types (above/below/change)
-  - In-app notification system
-  - Alert persistence with SQLite/Prisma
+- **⭐ Watchlist System**
+  - Save your favorite tickers
+  - Real-time price updates
+  - Day-over-day change calculations
+  - Smart button states (disabled when already added)
+
+- **🔐 Authentication**
+  - JWT-based secure authentication
+  - Password strength validation
+  - HTTP-only cookies
+  - Rate-limited endpoints
 
 - **🎨 UX & Design**
   - Dark mode first (default theme)
-  - Keyboard shortcuts (`/` for search, `g+m/i/a` for navigation)
+  - Toast notifications for user feedback
   - Responsive layout (mobile/tablet/desktop)
-  - Progressive disclosure (expand for details)
   - Data timestamps with degraded mode indicators
 
-- **⚡ Performance**
-  - In-memory + database caching
-  - Rate-limit awareness
-  - Degraded mode fallbacks
-  - Latency measurements on all API calls
+- **⚡ Performance & Security**
+  - LRU caching with request deduplication
+  - Rate limiting middleware
+  - Health check endpoint
+  - Error handling with graceful fallbacks
 
-### V2 (Scaffolded, TODOs present)
+## 🚀 Production Ready
 
 - Alert trigger engine with webhooks
 - Market heatmap visualization
@@ -72,15 +78,73 @@ cd pulseboard
 # 2. Install dependencies
 npm install
 
+This branch includes production-ready improvements:
+
+- ✅ **Security hardening** - Rate limiting, password validation, no API key logging
+- ✅ **Improved caching** - LRU cache with request deduplication
+- ✅ **Health monitoring** - `/api/health` endpoint for uptime monitoring
+- ✅ **Environment configuration** - `.env.example` with all variables
+- ✅ **Deployment guide** - Comprehensive production deployment instructions
+
+See [PRODUCTION.md](./PRODUCTION.md) for detailed deployment guide.
+
+---
+
+## 🏃 Quick Start
+
+### Development Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/alpha-turing/pulseboard.git
+cd pulseboard
+
+# 2. Install dependencies
+npm install
+
 # 3. Set up environment variables
-cp .env.local.example .env.local
-# Edit .env.local and add your POLYGON_API_KEY
+cp .env.example .env
+# Edit .env and add your POLYGON_API_KEY and JWT_SECRET
 
 # 4. Initialize the database
 npx prisma db push
 
 # 5. Run the development server
 npm run dev
+```
+
+The app will be available at **http://localhost:3000**
+
+### Production Deployment
+
+See [PRODUCTION.md](./PRODUCTION.md) for comprehensive production deployment guide including:
+- Security checklist
+- Deployment to Vercel, Docker, or VPS
+- Database migration to PostgreSQL
+- Redis setup for caching
+- Monitoring and alerts
+
+---
+
+## 🔑 Environment Variables
+
+Create a `.env` file in the root directory (see `.env.example`):
+
+```env
+# Database (SQLite for dev, PostgreSQL for prod)
+DATABASE_URL="file:./dev.db"
+
+# Authentication (CRITICAL: Generate strong secret for production)
+JWT_SECRET="your-strong-random-secret"
+
+# Polygon.io API Key
+POLYGON_API_KEY="your_polygon_api_key_here"
+
+# Application Environment
+NODE_ENV="development"
+```
+
+**Security Note**: Never commit `.env` to git. Always use strong, randomly generated secrets in production.
 ```
 
 The app will be available at **http://localhost:3000**

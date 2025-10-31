@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { hashPassword, createToken, setAuthCookie } from '@/lib/auth';
+import { hashPassword, createToken, setAuthCookie, validatePassword } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -14,9 +14,20 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password.length < 6) {
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
+        { error: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { error: passwordValidation.errors.join('. ') },
         { status: 400 }
       );
     }
