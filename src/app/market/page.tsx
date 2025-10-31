@@ -108,7 +108,7 @@ export default function MarketPage() {
             </span>
                <div className="flex items-start justify-between">     
                  <WebSocketStatus />
-                </div>
+              </div>
           </div>
           {marketStatus && (
             <DataTimestamp

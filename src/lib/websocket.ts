@@ -28,10 +28,10 @@ class MassiveWebSocketClient {
 
   constructor(apiKey: string, realtime: boolean = false) {
     this.apiKey = apiKey;
-    // Use real-time endpoint for premium subscribers, delayed for free tier
+    // Use Polygon.io WebSocket endpoints
     this.url = realtime 
-      ? 'wss://socket.massive.com/stocks'
-      : 'wss://delayed.massive.com/stocks';
+      ? 'wss://socket.polygon.io/stocks'
+      : 'wss://delayed.polygon.io/stocks';
   }
 
   /**
