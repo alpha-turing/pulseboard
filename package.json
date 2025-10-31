@@ -5,9 +5,10 @@
   "description": "One screen to see, explain, and export the market — powered by polygon.io",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio"
   },
