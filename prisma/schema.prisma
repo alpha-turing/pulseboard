@@ -1,12 +1,12 @@
 // Prisma schema for Pulseboard
-// SQLite for local dev, can swap to PostgreSQL for production
+// PostgreSQL (Neon) for production and development
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
