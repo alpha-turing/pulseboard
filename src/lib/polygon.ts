@@ -118,7 +118,7 @@ async function polygonFetch<T>(
   
   // Check if API key is missing
   if (!POLYGON_API_KEY || POLYGON_API_KEY === 'your_polygon_api_key_here') {
-    console.log('[Polygon] No valid API key found, using sample data');
+    console.warn('[Polygon] No valid API key found, using sample data for endpoint:', endpoint);
     return {
       data: fallback,
       source: 'polygon.io (mock)',
@@ -129,13 +129,15 @@ async function polygonFetch<T>(
     };
   }
 
-  console.log('[Polygon] Using API key:', POLYGON_API_KEY.substring(0, 8) + '...');
+  console.log('[Polygon] Fetching from API:', endpoint, 'with key:', POLYGON_API_KEY.substring(0, 8) + '...');
 
   try {
     const { result, latencyMs } = await measureLatency(async () => {
       const url = `${POLYGON_BASE_URL}${endpoint}${
         endpoint.includes('?') ? '&' : '?'
       }apiKey=${POLYGON_API_KEY}`;
+      
+      console.log('[Polygon] Full URL:', url.replace(POLYGON_API_KEY, 'API_KEY_HIDDEN'));
       
       const response = await fetch(url, {
         headers: {
@@ -145,11 +147,17 @@ async function polygonFetch<T>(
         signal: AbortSignal.timeout(10000),
       });
 
+      console.log('[Polygon] Response status:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('[Polygon] Error response:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
-      return await response.json();
+      const jsonData = await response.json();
+      console.log('[Polygon] Success! Got', JSON.stringify(jsonData).substring(0, 200) + '...');
+      return jsonData;
     });
 
     return {
@@ -237,18 +245,41 @@ export async function getAggregates(
 ): Promise<PolygonResponse<{ results: Aggregate[]; ticker: string; resultsCount: number }>> {
   const endpoint = `/v2/aggs/ticker/${ticker}/range/${multiplier}/${timespan}/${from}/${to}`;
 
-  // Generate sample data
+  // Generate realistic sample data based on typical prices for common tickers
+  const tickerPrices: { [key: string]: number } = {
+    'AAPL': 271.40,
+    'MSFT': 423.00,
+    'GOOGL': 175.50,
+    'AMZN': 195.00,
+    'TSLA': 265.00,
+    'META': 567.00,
+    'NVDA': 140.00,
+    'SPY': 575.00,
+    'QQQ': 490.00,
+  };
+  
+  const basePrice = tickerPrices[ticker] || 100.00;
   const now = Date.now();
-  const sampleResults: Aggregate[] = Array.from({ length: 20 }, (_, i) => ({
-    v: Math.floor(Math.random() * 1000000),
-    vw: 150 + Math.random() * 50,
-    o: 150 + Math.random() * 50,
-    c: 150 + Math.random() * 50,
-    h: 180 + Math.random() * 20,
-    l: 140 + Math.random() * 20,
-    t: now - i * 60000,
-    n: Math.floor(Math.random() * 100),
-  }));
+  
+  // Generate 30 days of realistic data with small daily variations
+  const sampleResults: Aggregate[] = Array.from({ length: 30 }, (_, i) => {
+    const daysAgo = 29 - i; // Start from 30 days ago
+    const dailyVariation = (Math.random() - 0.5) * 0.03; // +/- 1.5% daily
+    const dayPrice = basePrice * (1 + dailyVariation);
+    const dayHigh = dayPrice * (1 + Math.random() * 0.02);
+    const dayLow = dayPrice * (1 - Math.random() * 0.02);
+    
+    return {
+      v: Math.floor(50000000 + Math.random() * 30000000), // Realistic volume
+      vw: dayPrice,
+      o: dayPrice * (1 + (Math.random() - 0.5) * 0.01),
+      c: dayPrice,
+      h: dayHigh,
+      l: dayLow,
+      t: now - daysAgo * 86400000, // Timestamp in milliseconds
+      n: Math.floor(50000 + Math.random() * 20000),
+    };
+  });
 
   const fallback = {
     results: sampleResults,
