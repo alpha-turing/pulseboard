@@ -86,16 +86,7 @@ export default function MarketPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Market Overview</h1>
-          <p className="text-gray-400 mt-1">
-            Real-time equity market data and top movers
-          </p>
-        </div>
-        <WebSocketStatus />
-      </div>
+      {/* Header */}  
 
       {/* Market Status Banner */}
       <div
@@ -115,6 +106,9 @@ export default function MarketPage() {
             <span className="text-white font-semibold">
               US Market is {isMarketOpen ? 'OPEN' : 'CLOSED'}
             </span>
+               <div className="flex items-start justify-between">     
+                 <WebSocketStatus />
+                </div>
           </div>
           {marketStatus && (
             <DataTimestamp
