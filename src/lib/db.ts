@@ -30,6 +30,7 @@ export async function getDemoUser() {
       data: {
         email,
         name: 'Demo User',
+        password: 'hashed-demo-password-not-used', // Demo user requires password field
       },
     });
   }
@@ -56,7 +57,7 @@ export async function getDashboardViews(userId: string): Promise<DashboardView[]
     orderBy: { updatedAt: 'desc' },
   });
 
-  return views.map((v) => ({
+  return views.map((v: any) => ({
     id: v.id,
     userId: v.userId,
     name: v.name,
