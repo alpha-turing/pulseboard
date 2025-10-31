@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import DataTimestamp from '@/components/DataTimestamp';
+import WebSocketStatus from '@/components/WebSocketStatus';
+import { useRealtimePrices } from '@/hooks/useRealtimePrice';
 
 interface MarketMover {
   ticker: string;
@@ -64,6 +66,15 @@ export default function MarketPage() {
     .sort((a: MarketMover, b: MarketMover) => b.day.v - a.day.v)
     .slice(0, 10);
 
+  // Subscribe to real-time prices for all visible tickers
+  const allTickers = [...gainers, ...losers, ...mostActive].map(m => m.ticker);
+  const realtimePrices = useRealtimePrices(allTickers, isMarketOpen);
+
+  // Helper to get current price (real-time if available, otherwise static)
+  const getCurrentPrice = (ticker: string, staticPrice: number) => {
+    return realtimePrices[ticker]?.price || staticPrice;
+  };
+
   const handleTickerClick = (ticker: string) => {
     router.push(`/instruments?ticker=${ticker}`);
   };
@@ -71,11 +82,14 @@ export default function MarketPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-white">Market Overview</h1>
-        <p className="text-gray-400 mt-1">
-          Real-time equity market data and top movers
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Market Overview</h1>
+          <p className="text-gray-400 mt-1">
+            Real-time equity market data and top movers
+          </p>
+        </div>
+        <WebSocketStatus />
       </div>
 
       {/* Market Status Banner */}
@@ -128,35 +142,45 @@ export default function MarketPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {gainers.map((mover: MarketMover, idx: number) => (
-                  <div
-                    key={mover.ticker}
-                    onClick={() => handleTickerClick(mover.ticker)}
-                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-500 font-mono text-sm w-6">
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <div className="font-semibold text-white">
-                          {mover.ticker}
+                {gainers.map((mover: MarketMover, idx: number) => {
+                  const currentPrice = getCurrentPrice(mover.ticker, mover.day.c);
+                  const isRealtime = realtimePrices[mover.ticker] !== undefined;
+                  
+                  return (
+                    <div
+                      key={mover.ticker}
+                      onClick={() => handleTickerClick(mover.ticker)}
+                      className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500 font-mono text-sm w-6">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white">
+                              {mover.ticker}
+                            </span>
+                            {isRealtime && (
+                              <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" title="Live" />
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            ${currentPrice.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-success font-semibold">
+                          +{mover.todaysChangePerc.toFixed(2)}%
                         </div>
                         <div className="text-sm text-gray-400">
-                          ${mover.day.c.toFixed(2)}
+                          Vol: {(mover.day.v / 1000000).toFixed(1)}M
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-success font-semibold">
-                        +{mover.todaysChangePerc.toFixed(2)}%
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        Vol: {(mover.day.v / 1000000).toFixed(1)}M
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -178,35 +202,45 @@ export default function MarketPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {losers.map((mover: MarketMover, idx: number) => (
-                  <div
-                    key={mover.ticker}
-                    onClick={() => handleTickerClick(mover.ticker)}
-                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-500 font-mono text-sm w-6">
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <div className="font-semibold text-white">
-                          {mover.ticker}
+                {losers.map((mover: MarketMover, idx: number) => {
+                  const currentPrice = getCurrentPrice(mover.ticker, mover.day.c);
+                  const isRealtime = realtimePrices[mover.ticker] !== undefined;
+                  
+                  return (
+                    <div
+                      key={mover.ticker}
+                      onClick={() => handleTickerClick(mover.ticker)}
+                      className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500 font-mono text-sm w-6">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white">
+                              {mover.ticker}
+                            </span>
+                            {isRealtime && (
+                              <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" title="Live" />
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            ${currentPrice.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-danger font-semibold">
+                          {mover.todaysChangePerc.toFixed(2)}%
                         </div>
                         <div className="text-sm text-gray-400">
-                          ${mover.day.c.toFixed(2)}
+                          Vol: {(mover.day.v / 1000000).toFixed(1)}M
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-danger font-semibold">
-                        {mover.todaysChangePerc.toFixed(2)}%
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        Vol: {(mover.day.v / 1000000).toFixed(1)}M
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -228,35 +262,45 @@ export default function MarketPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {mostActive.map((mover: MarketMover, idx: number) => (
-                  <div
-                    key={mover.ticker}
-                    onClick={() => handleTickerClick(mover.ticker)}
-                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-500 font-mono text-sm w-6">
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <div className="font-semibold text-white">
-                          {mover.ticker}
+                {mostActive.map((mover: MarketMover, idx: number) => {
+                  const currentPrice = getCurrentPrice(mover.ticker, mover.day.c);
+                  const isRealtime = realtimePrices[mover.ticker] !== undefined;
+                  
+                  return (
+                    <div
+                      key={mover.ticker}
+                      onClick={() => handleTickerClick(mover.ticker)}
+                      className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-500 font-mono text-sm w-6">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white">
+                              {mover.ticker}
+                            </span>
+                            {isRealtime && (
+                              <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" title="Live" />
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            ${currentPrice.toFixed(2)}
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-400">
-                          ${mover.day.c.toFixed(2)}
+                      </div>
+                      <div className="text-right">
+                        <div className={`font-semibold ${mover.todaysChangePerc >= 0 ? 'text-success' : 'text-danger'}`}>
+                          {mover.todaysChangePerc >= 0 ? '+' : ''}{mover.todaysChangePerc.toFixed(2)}%
+                        </div>
+                        <div className="text-sm text-primary-400">
+                          Vol: {(mover.day.v / 1000000).toFixed(1)}M
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className={`font-semibold ${mover.todaysChangePerc >= 0 ? 'text-success' : 'text-danger'}`}>
-                        {mover.todaysChangePerc >= 0 ? '+' : ''}{mover.todaysChangePerc.toFixed(2)}%
-                      </div>
-                      <div className="text-sm text-primary-400">
-                        Vol: {(mover.day.v / 1000000).toFixed(1)}M
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
