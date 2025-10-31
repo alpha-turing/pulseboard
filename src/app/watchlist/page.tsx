@@ -6,6 +6,8 @@ import { useToast } from '@/contexts/ToastContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import WebSocketStatus from '@/components/WebSocketStatus';
+import { useRealtimePrices } from '@/hooks/useRealtimePrice';
 
 interface TickerData {
   ticker: string;
@@ -132,11 +134,33 @@ export default function WatchlistPage() {
 
   const tickers = watchlistData?.watchlist?.tickers || [];
 
+  // Subscribe to real-time prices for all watchlist tickers
+  const realtimePrices = useRealtimePrices(tickers, true);
+
+  // Helper to get current price (real-time if available, otherwise static)
+  const getCurrentPrice = (ticker: string) => {
+    const staticData = priceData?.find((d: TickerData) => d.ticker === ticker);
+    return realtimePrices[ticker]?.price || staticData?.price || 0;
+  };
+
+  const getCurrentChange = (ticker: string) => {
+    const staticData = priceData?.find((d: TickerData) => d.ticker === ticker);
+    return staticData?.change || 0;
+  };
+
+  const getCurrentChangePercent = (ticker: string) => {
+    const staticData = priceData?.find((d: TickerData) => d.ticker === ticker);
+    return staticData?.changePercent || 0;
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-white">My Watchlist</h1>
-        <p className="text-gray-400 mt-1">Track your favorite tickers</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">My Watchlist</h1>
+          <p className="text-gray-400 mt-1">Track your favorite tickers</p>
+        </div>
+        <WebSocketStatus />
       </div>
 
       {tickers.length === 0 ? (
@@ -163,30 +187,36 @@ export default function WatchlistPage() {
             </thead>
             <tbody>
               {tickers.map((ticker: string) => {
-                const data = priceData?.find((d) => d.ticker === ticker);
+                const currentPrice = getCurrentPrice(ticker);
+                const change = getCurrentChange(ticker);
+                const changePercent = getCurrentChangePercent(ticker);
+                const isRealtime = realtimePrices[ticker] !== undefined;
                 
                 return (
                   <tr key={ticker} className="border-b border-gray-800 hover:bg-gray-800/50">
                     <td className="py-4 px-6">
                       <Link
                         href={`/instruments?ticker=${ticker}`}
-                        className="text-primary-400 hover:text-primary-300 font-semibold"
+                        className="flex items-center gap-2 text-primary-400 hover:text-primary-300 font-semibold"
                       >
                         {ticker}
+                        {isRealtime && (
+                          <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" title="Live" />
+                        )}
                       </Link>
                     </td>
                     <td className="py-4 px-6 text-right text-white">
-                      {data ? `$${data.price.toFixed(2)}` : '-'}
+                      {currentPrice > 0 ? `$${currentPrice.toFixed(2)}` : '-'}
                     </td>
                     <td className={`py-4 px-6 text-right font-semibold ${
-                      data && data.change >= 0 ? 'text-success' : 'text-danger'
+                      change >= 0 ? 'text-success' : 'text-danger'
                     }`}>
-                      {data ? `${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)}` : '-'}
+                      {currentPrice > 0 ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}` : '-'}
                     </td>
                     <td className={`py-4 px-6 text-right font-semibold ${
-                      data && data.changePercent >= 0 ? 'text-success' : 'text-danger'
+                      changePercent >= 0 ? 'text-success' : 'text-danger'
                     }`}>
-                      {data ? `${data.changePercent >= 0 ? '+' : ''}${data.changePercent.toFixed(2)}%` : '-'}
+                      {currentPrice > 0 ? `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%` : '-'}
                     </td>
                     <td className="py-4 px-6 text-right">
                       <button

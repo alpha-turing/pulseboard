@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import DataTimestamp from '@/components/DataTimestamp';
@@ -67,7 +67,12 @@ export default function MarketPage() {
     .slice(0, 10);
 
   // Subscribe to real-time prices for all visible tickers
-  const allTickers = [...gainers, ...losers, ...mostActive].map(m => m.ticker);
+  // Use useMemo to prevent array from changing on every render (hook rules)
+  const allTickers = useMemo(
+    () => [...gainers, ...losers, ...mostActive].map(m => m.ticker),
+    [gainers.length, losers.length, mostActive.length]
+  );
+  
   const realtimePrices = useRealtimePrices(allTickers, isMarketOpen);
 
   // Helper to get current price (real-time if available, otherwise static)
