@@ -107,15 +107,6 @@ export default function MarketPage() {
           )}
         </div>
       </div>
-
-      {/* Info Banner */}
-      {!isMarketOpen && (
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-          <p className="text-blue-400 text-sm">
-            📊 Showing data from previous trading session
-          </p>
-        </div>
-      )}
       
       {/* Top Movers Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -268,39 +259,6 @@ export default function MarketPage() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-      </div>
-
-      {/* Market Summary Stats */}
-      <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-        <h2 className="text-xl font-bold text-white mb-4">
-          Market Summary
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <div className="text-gray-400 text-sm">Advancing</div>
-            <div className="text-success text-2xl font-bold">
-              {gainers.length > 0 ? gainers.length * 100 : '-'}
-            </div>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <div className="text-gray-400 text-sm">Declining</div>
-            <div className="text-danger text-2xl font-bold">
-              {losers.length > 0 ? losers.length * 100 : '-'}
-            </div>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <div className="text-gray-400 text-sm">Most Active</div>
-            <div className="text-primary-400 text-2xl font-bold">
-              {mostActive.length > 0 ? mostActive[0]?.ticker : '-'}
-            </div>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <div className="text-gray-400 text-sm">Market Breadth</div>
-            <div className={`text-2xl font-bold ${gainers.length > losers.length ? 'text-success' : 'text-danger'}`}>
-              {gainers.length > losers.length ? 'Bullish' : 'Bearish'}
-            </div>
           </div>
         </div>
       </div>
