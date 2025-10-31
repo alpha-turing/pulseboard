@@ -1,0 +1,89 @@
+// Prisma schema for Pulseboard
+// SQLite for local dev, can swap to PostgreSQL for production
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model (simple auth placeholder)
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed password
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  watchlists     Watchlist[]
+  dashboardViews DashboardView[]
+  alerts         Alert[]
+}
+
+// Watchlist - users can have multiple watchlists
+model Watchlist {
+  id        String   @id @default(cuid())
+  name      String
+  tickers   String // JSON array of ticker symbols
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Dashboard views - customizable layouts per user
+model DashboardView {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  layout    String // JSON object
+  filters   String // JSON object
+  tickers   String // JSON array
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Alerts - price, volume, options OI triggers
+model Alert {
+  id           String   @id @default(cuid())
+  userId       String
+  ticker       String
+  alertType    String // 'price' | 'percent_move' | 'volume_spike' | 'options_oi'
+  condition    String // 'above' | 'below' | 'change'
+  threshold    Float
+  isActive     Boolean  @default(true)
+  lastTriggered DateTime?
+  deliveryTarget String @default("in-app") // 'in-app' | 'webhook' | 'email'
+  webhookUrl   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([ticker])
+  @@index([isActive])
+}
+
+// Cache table for polygon.io responses
+model PolygonCache {
+  id         String   @id @default(cuid())
+  cacheKey   String   @unique
+  endpoint   String
+  data       String // JSON
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([cacheKey])
+  @@index([expiresAt])
+}
