@@ -35,20 +35,20 @@ export function middleware(request: NextRequest) {
   const ip = request.ip || request.headers.get('x-forwarded-for') || 'anonymous';
   const pathname = request.nextUrl.pathname;
 
-  // Rate limit authentication endpoints more strictly
+  // Rate limit authentication endpoints - more lenient for usability
   if (pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/register')) {
-    const allowed = rateLimit(ip, 5, 15 * 60 * 1000); // 5 requests per 15 minutes
+    const allowed = rateLimit(ip, 50, 5 * 60 * 1000); // 20 requests per 5 minutes
     if (!allowed) {
       return NextResponse.json(
         { error: 'Too many authentication attempts. Please try again later.' },
-        { status: 429, headers: { 'Retry-After': '900' } }
+        { status: 429, headers: { 'Retry-After': '300' } }
       );
     }
   }
 
   // Rate limit all other API routes
   if (pathname.startsWith('/api/')) {
-    const allowed = rateLimit(ip, 100, 60 * 1000); // 100 requests per minute
+    const allowed = rateLimit(ip, 200, 60 * 1000); // 200 requests per minute
     if (!allowed) {
       return NextResponse.json(
         { error: 'Rate limit exceeded. Please slow down.' },
