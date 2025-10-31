@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET() {
   try {
     const currentUser = await getCurrentUser();
