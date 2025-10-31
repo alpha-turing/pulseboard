@@ -130,6 +130,38 @@ function InstrumentsContent() {
     low: bar.l,
   }));
 
+  // Add pulse animation to news event markers
+  useEffect(() => {
+    const styleId = 'news-pulse-animation';
+    let styleElement = document.getElementById(styleId);
+    
+    if (!styleElement) {
+      styleElement = document.createElement('style');
+      styleElement.id = styleId;
+      styleElement.innerHTML = `
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+        .highcharts-scatter-series .highcharts-point {
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+      `;
+      document.head.appendChild(styleElement);
+    }
+    
+    return () => {
+      const el = document.getElementById(styleId);
+      if (el) {
+        el.remove();
+      }
+    };
+  }, []);
+
   // Get price data from chart data (last 2 days for day-over-day change)
   const bars = chartData?.data?.results || [];
   const staticCurrentPrice = bars.length > 0 ? bars[bars.length - 1]?.c || 0 : 0;
@@ -220,49 +252,143 @@ function InstrumentsContent() {
         {chartLoading ? (
           <div className="h-64 bg-gray-800 rounded skeleton" />
         ) : chartPoints.length > 0 ? (
-          <HighchartsReact
-            highcharts={Highcharts}
-            options={{
-              chart: {
-                type: 'line',
-                backgroundColor: 'transparent',
-                height: 300,
-              },
-              title: {
-                text: '',
-              },
-              xAxis: {
-                categories: chartPoints.map((p) => p.time),
-                labels: {
-                  style: {
-                    color: '#9ca3af',
-                  },
+          <>
+            <HighchartsReact
+              highcharts={Highcharts}
+              options={{
+                chart: {
+                  type: 'line',
+                  backgroundColor: 'transparent',
+                  height: 300,
                 },
-                gridLineColor: '#374151',
-              },
-              yAxis: {
                 title: {
-                  text: 'Price (USD)',
-                  style: {
-                    color: '#9ca3af',
+                  text: '',
+                },
+                xAxis: {
+                  categories: chartPoints.map((p) => p.time),
+                  labels: {
+                    style: {
+                      color: '#9ca3af',
+                    },
                   },
+                  gridLineColor: '#374151',
                 },
-                labels: {
-                  style: {
-                    color: '#9ca3af',
+                yAxis: {
+                  title: {
+                    text: 'Price (USD)',
+                    style: {
+                      color: '#9ca3af',
+                    },
                   },
+                  labels: {
+                    style: {
+                      color: '#9ca3af',
+                    },
+                  },
+                  gridLineColor: '#374151',
                 },
-                gridLineColor: '#374151',
-              },
-              series: [{
-                name: selectedTicker,
-                data: chartPoints.map((p) => p.price),
-                color: '#3b82f6',
-                lineWidth: 2,
-                marker: {
-                  enabled: false,
-                },
-              }],
+                series: [
+                  {
+                    id: 'dataseries',
+                    name: selectedTicker,
+                    data: chartPoints.map((p) => p.price),
+                    color: '#3b82f6',
+                    lineWidth: 2,
+                    marker: {
+                      enabled: false,
+                    },
+                  },
+                  ...(newsData?.data?.results ? [{
+                    type: 'scatter',
+                    name: 'News Events',
+                    cursor: 'pointer',
+                    allowPointSelect: true,
+                    point: {
+                      events: {
+                        click: function(this: any) {
+                          window.open(this.url, '_blank');
+                        }
+                      }
+                    },
+                    data: (() => {
+                      const newsPoints = newsData.data.results
+                        .map((article: any) => {
+                          const articleDate = new Date(article.published_utc);
+                          const articleTimestamp = articleDate.getTime();
+                          
+                          // Find the closest chart point by date
+                          let closestIndex = -1;
+                          let minDiff = Infinity;
+                          
+                          chartPoints.forEach((point, idx) => {
+                            const pointDate = new Date(chartData.data.results[idx].t);
+                            const diff = Math.abs(pointDate.getTime() - articleTimestamp);
+                            
+                            // Only match if within the same day or very close (within 24 hours)
+                            if (diff < 86400000 && diff < minDiff) {
+                              minDiff = diff;
+                              closestIndex = idx;
+                            }
+                          });
+                          
+                          if (closestIndex === -1) return null;
+                          
+                          return {
+                            x: closestIndex,
+                            y: chartPoints[closestIndex].price,
+                            title: article.title,
+                            description: article.description || '',
+                            url: article.article_url,
+                            publishedDate: articleDate.toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                            }),
+                          };
+                        })
+                        .filter((point: any) => point !== null);
+                      
+                      return newsPoints;
+                    })(),
+                    color: '#10b981',
+                    marker: {
+                      enabled: true,
+                      radius: 4,
+                      symbol: 'circle',
+                      fillColor: '#10b981',
+                      lineWidth: 0,
+                      lineColor: 'transparent',
+                    },
+                    className: 'news-pulse',
+                    zIndex: 10,
+                    showInLegend: true,
+                    states: {
+                      hover: {
+                        marker: {
+                          radius: 6,
+                        },
+                      },
+                    },
+                    tooltip: {
+                      useHTML: true,
+                      headerFormat: '',
+                      pointFormatter: function(this: any) {
+                        const titleWords = this.title.split(' ');
+                        const truncatedTitle = titleWords.length > 3 
+                          ? titleWords.slice(0, 3).join(' ') + '...' 
+                          : this.title;
+                        return `<div style="max-width: 200px;">
+                          <div style="font-size: 9px; color: #9ca3af; margin-bottom: 4px;">${this.publishedDate}</div>
+                          <a href="${this.url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: #3b82f6; display: block;">
+                            <div style="font-weight: 500; font-size: 12px; line-height: 1.3; margin-bottom: 4px;">${truncatedTitle}</div>
+                            <div style="font-size: 9px; color: #9ca3af;">Click to read →</div>
+                          </a>
+                        </div>`;
+                      },
+                    },
+                  }] : []),
+                ],
               tooltip: {
                 backgroundColor: '#1f2937',
                 borderColor: '#374151',
@@ -270,6 +396,7 @@ function InstrumentsContent() {
                   color: '#fff',
                 },
                 valuePrefix: '$',
+                useHTML: true,
               },
               legend: {
                 enabled: false,
@@ -279,6 +406,7 @@ function InstrumentsContent() {
               },
             }}
           />
+          </>
         ) : (
           <div className="h-64 flex items-center justify-center text-gray-400">
             No chart data available

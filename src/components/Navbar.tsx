@@ -13,7 +13,6 @@ export default function Navbar() {
     { name: 'Market', path: '/market', key: 'm' },
     { name: 'Instruments', path: '/instruments', key: 'i' },
     ...(user ? [{ name: 'Watchlist', path: '/watchlist', key: 'w' }] : []),
-    { name: 'Alerts', path: '/alerts', key: 'a' },
   ];
 
   const isActive = (path: string) => pathname === path;
