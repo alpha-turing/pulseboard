@@ -43,16 +43,6 @@ function InstrumentsContent() {
     enabled: !!selectedTicker,
   });
 
-  // Fetch previous close for accurate price
-  const { data: prevCloseData } = useQuery({
-    queryKey: ['prev-close', selectedTicker],
-    queryFn: async () => {
-      const res = await fetch(`/api/polygon/prev-close?ticker=${selectedTicker}`);
-      return res.json();
-    },
-    enabled: !!selectedTicker,
-  });
-
   // Fetch news
   const { data: newsData } = useQuery({
     queryKey: ['news', selectedTicker],
@@ -138,17 +128,18 @@ function InstrumentsContent() {
     low: bar.l,
   }));
 
-  // Get price data from previous close API (more accurate)
-  const prevClose = prevCloseData?.data?.results?.[0];
-  const currentPrice = prevClose?.c || 0;
-  const prevDayClose = prevClose?.o || currentPrice; // Open price is approx prev close
+  // Get price data from chart data (last 2 days for day-over-day change)
+  const bars = chartData?.data?.results || [];
+  const currentPrice = bars.length > 0 ? bars[bars.length - 1]?.c || 0 : 0;
+  const prevDayClose = bars.length > 1 ? bars[bars.length - 2]?.c || currentPrice : currentPrice;
   const change = currentPrice - prevDayClose;
   const changePercent = prevDayClose > 0 ? (change / prevDayClose) * 100 : 0;
 
-  // Also get high/low from the data
-  const high = prevClose?.h || currentPrice;
-  const low = prevClose?.l || currentPrice;
-  const volume = prevClose?.v || 0;
+  // Get high/low/volume from latest bar
+  const latestBar = bars.length > 0 ? bars[bars.length - 1] : null;
+  const high = latestBar?.h || currentPrice;
+  const low = latestBar?.l || currentPrice;
+  const volume = latestBar?.v || 0;
 
   return (
     <div className="space-y-6">
