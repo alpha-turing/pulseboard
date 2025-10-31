@@ -6,6 +6,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import DataTimestamp from '@/components/DataTimestamp';
+import WebSocketStatus from '@/components/WebSocketStatus';
+import { useRealtimePrice } from '@/hooks/useRealtimePrice';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 
@@ -130,23 +132,32 @@ function InstrumentsContent() {
 
   // Get price data from chart data (last 2 days for day-over-day change)
   const bars = chartData?.data?.results || [];
-  const currentPrice = bars.length > 0 ? bars[bars.length - 1]?.c || 0 : 0;
-  const prevDayClose = bars.length > 1 ? bars[bars.length - 2]?.c || currentPrice : currentPrice;
+  const staticCurrentPrice = bars.length > 0 ? bars[bars.length - 1]?.c || 0 : 0;
+  const prevDayClose = bars.length > 1 ? bars[bars.length - 2]?.c || staticCurrentPrice : staticCurrentPrice;
+  
+  // Subscribe to real-time price updates
+  const { data: realtimeData, isConnected } = useRealtimePrice(selectedTicker, true);
+  
+  // Use real-time price if available, otherwise use static price from chart data
+  const currentPrice = realtimeData?.price || staticCurrentPrice;
   const change = currentPrice - prevDayClose;
   const changePercent = prevDayClose > 0 ? (change / prevDayClose) * 100 : 0;
 
-  // Get high/low/volume from latest bar
+  // Get high/low/volume from latest bar (or real-time if available)
   const latestBar = bars.length > 0 ? bars[bars.length - 1] : null;
-  const high = latestBar?.h || currentPrice;
-  const low = latestBar?.l || currentPrice;
-  const volume = latestBar?.v || 0;
+  const high = realtimeData?.high || latestBar?.h || currentPrice;
+  const low = realtimeData?.low || latestBar?.l || currentPrice;
+  const volume = realtimeData?.accumulated_volume || latestBar?.v || 0;
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-white">Instruments</h1>
-        <p className="text-gray-400 mt-1">Search, analyze, and monitor instruments</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Instruments</h1>
+          <p className="text-gray-400 mt-1">Search, analyze, and monitor instruments</p>
+        </div>
+        <WebSocketStatus />
       </div>
 
       {/* Selected Ticker Display */}
@@ -154,7 +165,12 @@ function InstrumentsContent() {
         <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-4xl font-bold text-white">{selectedTicker}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-4xl font-bold text-white">{selectedTicker}</h2>
+                {realtimeData && (
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Live data" />
+                )}
+              </div>
               <p className="text-gray-400 mt-1">{selectedTicker} Inc.</p>
             </div>
             <div className="text-right">
