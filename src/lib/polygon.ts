@@ -215,18 +215,9 @@ export async function getTickerReference(
     query
   )}&active=true&limit=20`;
 
+  // No fallback - always use real API data
   const fallback = {
-    results: SAMPLE_TICKERS.filter((t) =>
-      t.toLowerCase().includes(query.toLowerCase())
-    ).map((ticker) => ({
-      ticker,
-      name: `${ticker} Inc.`,
-      market: 'stocks',
-      locale: 'us',
-      primary_exchange: 'XNAS',
-      type: 'CS',
-      active: true,
-    })),
+    results: [],
     count: 0,
   };
 
@@ -245,46 +236,11 @@ export async function getAggregates(
 ): Promise<PolygonResponse<{ results: Aggregate[]; ticker: string; resultsCount: number }>> {
   const endpoint = `/v2/aggs/ticker/${ticker}/range/${multiplier}/${timespan}/${from}/${to}`;
 
-  // Generate realistic sample data based on typical prices for common tickers
-  const tickerPrices: { [key: string]: number } = {
-    'AAPL': 271.40,
-    'MSFT': 423.00,
-    'GOOGL': 175.50,
-    'AMZN': 195.00,
-    'TSLA': 265.00,
-    'META': 567.00,
-    'NVDA': 140.00,
-    'SPY': 575.00,
-    'QQQ': 490.00,
-  };
-  
-  const basePrice = tickerPrices[ticker] || 100.00;
-  const now = Date.now();
-  
-  // Generate 30 days of realistic data with small daily variations
-  const sampleResults: Aggregate[] = Array.from({ length: 30 }, (_, i) => {
-    const daysAgo = 29 - i; // Start from 30 days ago
-    const dailyVariation = (Math.random() - 0.5) * 0.03; // +/- 1.5% daily
-    const dayPrice = basePrice * (1 + dailyVariation);
-    const dayHigh = dayPrice * (1 + Math.random() * 0.02);
-    const dayLow = dayPrice * (1 - Math.random() * 0.02);
-    
-    return {
-      v: Math.floor(50000000 + Math.random() * 30000000), // Realistic volume
-      vw: dayPrice,
-      o: dayPrice * (1 + (Math.random() - 0.5) * 0.01),
-      c: dayPrice,
-      h: dayHigh,
-      l: dayLow,
-      t: now - daysAgo * 86400000, // Timestamp in milliseconds
-      n: Math.floor(50000 + Math.random() * 20000),
-    };
-  });
-
+  // No fallback - always use real API data
   const fallback = {
-    results: sampleResults,
+    results: [],
     ticker,
-    resultsCount: sampleResults.length,
+    resultsCount: 0,
   };
 
   return polygonFetch(endpoint, fallback, 60); // 1 min cache
@@ -306,19 +262,10 @@ export async function getNews(params: {
     endpoint += `&ticker=${params.ticker}`;
   }
 
+  // No fallback - always use real API data
   const fallback = {
-    results: [
-      {
-        id: 'sample-1',
-        publisher: { name: 'Sample News' },
-        title: `${params.ticker || 'Market'} shows strong momentum`,
-        author: 'Sample Author',
-        published_utc: new Date().toISOString(),
-        article_url: 'https://example.com',
-        tickers: params.ticker ? [params.ticker] : SAMPLE_TICKERS,
-      },
-    ] as NewsArticle[],
-    count: 1,
+    results: [],
+    count: 0,
   };
 
   return polygonFetch(endpoint, fallback, 120); // 2 min cache
@@ -355,20 +302,10 @@ export async function getPreviousClose(
 ): Promise<PolygonResponse<{ ticker: string; results: Aggregate[] }>> {
   const endpoint = `/v2/aggs/ticker/${ticker}/prev`;
 
+  // No fallback - always use real API data
   const fallback = {
     ticker,
-    results: [
-      {
-        v: 1000000,
-        vw: 150,
-        o: 148,
-        c: 152,
-        h: 155,
-        l: 147,
-        t: Date.now() - 86400000,
-        n: 100,
-      },
-    ],
+    results: [],
   };
 
   return polygonFetch(endpoint, fallback, 300);
