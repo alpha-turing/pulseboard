@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import DataTimestamp from '@/components/DataTimestamp';
-import { hasApiKey } from '@/lib/polygon';
 
 interface MarketMover {
   ticker: string;
@@ -26,9 +26,7 @@ interface MarketStatusData {
 }
 
 export default function MarketPage() {
-  const [activeTab, setActiveTab] = useState<'equity' | 'options' | 'crypto'>(
-    'equity'
-  );
+  const router = useRouter();
 
   // Fetch market status
   const { data: marketStatus } = useQuery({
@@ -44,7 +42,7 @@ export default function MarketPage() {
 
   // Fetch top movers - always fetch, but use previous day data when market is closed
   const { data: topMovers, isLoading } = useQuery({
-    queryKey: ['top-movers', activeTab],
+    queryKey: ['top-movers'],
     queryFn: async () => {
       const res = await fetch(`/api/polygon/snapshot`);
       return res.json();
@@ -55,20 +53,28 @@ export default function MarketPage() {
   const gainers = (topMovers?.data?.tickers || [])
     .filter((t: MarketMover) => t.todaysChangePerc > 0)
     .sort((a: MarketMover, b: MarketMover) => b.todaysChangePerc - a.todaysChangePerc)
-    .slice(0, 5);
+    .slice(0, 10);
 
   const losers = (topMovers?.data?.tickers || [])
     .filter((t: MarketMover) => t.todaysChangePerc < 0)
     .sort((a: MarketMover, b: MarketMover) => a.todaysChangePerc - b.todaysChangePerc)
-    .slice(0, 5);
+    .slice(0, 10);
+
+  const mostActive = (topMovers?.data?.tickers || [])
+    .sort((a: MarketMover, b: MarketMover) => b.day.v - a.day.v)
+    .slice(0, 10);
+
+  const handleTickerClick = (ticker: string) => {
+    router.push(`/instruments?ticker=${ticker}`);
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white">Market Dashboard</h1>
+        <h1 className="text-3xl font-bold text-white">Market Overview</h1>
         <p className="text-gray-400 mt-1">
-          Real-time market data and top movers
+          Real-time equity market data and top movers
         </p>
       </div>
 
@@ -88,7 +94,7 @@ export default function MarketPage() {
               }`}
             />
             <span className="text-white font-semibold">
-              Market is {isMarketOpen ? 'OPEN' : 'CLOSED'}
+              US Market is {isMarketOpen ? 'OPEN' : 'CLOSED'}
             </span>
           </div>
           {marketStatus && (
@@ -102,57 +108,40 @@ export default function MarketPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-800">
-        <div className="flex space-x-8">
-          {['equity', 'options', 'crypto'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as any)}
-              className={`pb-4 px-1 font-medium capitalize ${
-                activeTab === tab
-                  ? 'border-b-2 border-primary-500 text-white'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Top Movers Grid */}
+      {/* Info Banner */}
       {!isMarketOpen && (
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
           <p className="text-blue-400 text-sm">
-            📊 Showing top gainers and losers from previous trading day
+            📊 Showing data from previous trading session
           </p>
         </div>
       )}
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Top Movers Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Gainers */}
         <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
           <h2 className="text-xl font-bold text-success mb-4">
             Top Gainers 📈
           </h2>
-          <div className="min-h-[400px]">
+          <div className="min-h-[500px]">
             {isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                   <div key={i} className="h-16 bg-gray-800 rounded skeleton" />
                 ))}
               </div>
             ) : gainers.length === 0 ? (
-              <div className="flex items-center justify-center h-[400px] text-gray-400">
+              <div className="flex items-center justify-center h-[500px] text-gray-400">
                 <p>No gainers data available</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {gainers.map((mover: MarketMover, idx: number) => (
                   <div
                     key={mover.ticker}
-                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors"
+                    onClick={() => handleTickerClick(mover.ticker)}
+                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-gray-500 font-mono text-sm w-6">
@@ -185,23 +174,24 @@ export default function MarketPage() {
         {/* Losers */}
         <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
           <h2 className="text-xl font-bold text-danger mb-4">Top Losers 📉</h2>
-          <div className="min-h-[400px]">
+          <div className="min-h-[500px]">
             {isLoading ? (
               <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                   <div key={i} className="h-16 bg-gray-800 rounded skeleton" />
                 ))}
               </div>
             ) : losers.length === 0 ? (
-              <div className="flex items-center justify-center h-[400px] text-gray-400">
+              <div className="flex items-center justify-center h-[500px] text-gray-400">
                 <p>No losers data available</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {losers.map((mover: MarketMover, idx: number) => (
                   <div
                     key={mover.ticker}
-                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors"
+                    onClick={() => handleTickerClick(mover.ticker)}
+                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-gray-500 font-mono text-sm w-6">
@@ -230,15 +220,88 @@ export default function MarketPage() {
             )}
           </div>
         </div>
+
+        {/* Most Active */}
+        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
+          <h2 className="text-xl font-bold text-primary-400 mb-4">Most Active 🔥</h2>
+          <div className="min-h-[500px]">
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                  <div key={i} className="h-16 bg-gray-800 rounded skeleton" />
+                ))}
+              </div>
+            ) : mostActive.length === 0 ? (
+              <div className="flex items-center justify-center h-[500px] text-gray-400">
+                <p>No active stocks data available</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {mostActive.map((mover: MarketMover, idx: number) => (
+                  <div
+                    key={mover.ticker}
+                    onClick={() => handleTickerClick(mover.ticker)}
+                    className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-500 font-mono text-sm w-6">
+                        {idx + 1}
+                      </span>
+                      <div>
+                        <div className="font-semibold text-white">
+                          {mover.ticker}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          ${mover.day.c.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`font-semibold ${mover.todaysChangePerc >= 0 ? 'text-success' : 'text-danger'}`}>
+                        {mover.todaysChangePerc >= 0 ? '+' : ''}{mover.todaysChangePerc.toFixed(2)}%
+                      </div>
+                      <div className="text-sm text-primary-400">
+                        Vol: {(mover.day.v / 1000000).toFixed(1)}M
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Live Events Stream - Placeholder */}
+      {/* Market Summary Stats */}
       <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
         <h2 className="text-xl font-bold text-white mb-4">
-          Live Events 🔴 <span className="text-sm text-gray-400 font-normal">Coming soon</span>
+          Market Summary
         </h2>
-        <div className="text-gray-400 text-sm">
-          Real-time news and volume spikes will appear here. WebSocket integration in progress.
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <div className="text-gray-400 text-sm">Advancing</div>
+            <div className="text-success text-2xl font-bold">
+              {gainers.length > 0 ? gainers.length * 100 : '-'}
+            </div>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <div className="text-gray-400 text-sm">Declining</div>
+            <div className="text-danger text-2xl font-bold">
+              {losers.length > 0 ? losers.length * 100 : '-'}
+            </div>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <div className="text-gray-400 text-sm">Most Active</div>
+            <div className="text-primary-400 text-2xl font-bold">
+              {mostActive.length > 0 ? mostActive[0]?.ticker : '-'}
+            </div>
+          </div>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <div className="text-gray-400 text-sm">Market Breadth</div>
+            <div className={`text-2xl font-bold ${gainers.length > losers.length ? 'text-success' : 'text-danger'}`}>
+              {gainers.length > losers.length ? 'Bullish' : 'Bearish'}
+            </div>
+          </div>
         </div>
       </div>
     </div>
