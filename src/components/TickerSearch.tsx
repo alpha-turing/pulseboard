@@ -74,7 +74,7 @@ export default function TickerSearch() {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.length > 0 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-          placeholder="Search symbols... (press / to focus)"
+          placeholder=""
           className="w-full px-4 py-2 pl-10 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-white placeholder-gray-400"
         />
         <svg
