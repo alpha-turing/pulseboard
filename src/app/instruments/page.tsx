@@ -510,16 +510,6 @@ function InstrumentsContent() {
           <div className="text-gray-400">No recent news available</div>
         )}
       </div>
-
-      {/* Options Tab - Placeholder */}
-      <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-        <h3 className="text-xl font-bold text-white mb-4">
-          Options <span className="text-sm text-gray-400 font-normal">Coming soon</span>
-        </h3>
-        <div className="text-gray-400 text-sm">
-          Options chain and IV analytics will be available in the next release.
-        </div>
-      </div>
     </div>
   );
 }

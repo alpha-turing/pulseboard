@@ -28,7 +28,7 @@ if [ ! -f .env.local ]; then
     cat > .env.local << EOF
 # Polygon.io API Key
 # Get your free key at: https://polygon.io/dashboard/signup
-POLYGON_API_KEY=VTrinf8D39ArmCXpRUOAiltVECt48M07
+POLYGON_API_KEY=tFTHeiZP5sVoJgoMfzFlKIOFluC85PlV
 
 # Database (SQLite for local dev)
 DATABASE_URL="file:./dev.db"
