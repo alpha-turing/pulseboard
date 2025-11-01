@@ -120,22 +120,11 @@ export default function WatchlistPage() {
     },
   });
 
-  if (authLoading || watchlistLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-gray-400">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
   const tickers = watchlistData?.watchlist?.tickers || [];
 
   // Subscribe to real-time prices for all watchlist tickers
-  const realtimePrices = useRealtimePrices(tickers, true);
+  // IMPORTANT: Call hooks before any conditional returns!
+  const realtimePrices = useRealtimePrices(tickers, !!user && tickers.length > 0);
 
   // Helper to get current price (real-time if available, otherwise static)
   const getCurrentPrice = (ticker: string) => {
@@ -152,6 +141,18 @@ export default function WatchlistPage() {
     const staticData = priceData?.find((d: TickerData) => d.ticker === ticker);
     return staticData?.changePercent || 0;
   };
+
+  if (authLoading || watchlistLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-gray-400">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
