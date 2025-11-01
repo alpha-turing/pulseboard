@@ -111,22 +111,46 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-sm text-gray-300 hidden xl:inline max-w-[150px] truncate">
-                  {user.name || user.email}
-                </span>
-                <Button variant="ghost" size="sm" onClick={() => logout()}>
-                  Logout
-                </Button>
+                <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-gray-600/50 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-primary-500 to-brand-secondary-500 flex items-center justify-center shadow-lg shadow-brand-primary-500/20">
+                      <span className="text-white font-bold text-sm">
+                        {(user.name || user.email).charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="text-sm font-medium text-white hidden xl:inline max-w-[150px] truncate">
+                      {user.name || user.email}
+                    </span>
+                  </div>
+                  <div className="h-6 w-px bg-gray-700/50" />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => logout()}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                  </Button>
+                </div>
               </>
             ) : (
               <>
                 <Link href="/auth/login">
                   <Button variant="ghost" size="sm">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
                     Login
                   </Button>
                 </Link>
                 <Link href="/auth/register">
                   <Button variant="primary" size="sm">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
                     Register
                   </Button>
                 </Link>
@@ -180,20 +204,37 @@ export default function Navbar() {
             {/* User Section */}
             <div className="pt-4 border-t border-gray-800 mt-4">
               {user ? (
-                <>
-                  <div className="px-4 py-2 text-sm text-gray-400">
-                    {user.name || user.email}
+                <div className="space-y-2">
+                  <div className="px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700/50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-primary-500 to-brand-secondary-500 flex items-center justify-center shadow-lg shadow-brand-primary-500/20">
+                        <span className="text-white font-bold">
+                          {(user.name || user.email).charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-white truncate">
+                          {user.name || 'User'}
+                        </div>
+                        <div className="text-xs text-gray-400 truncate">
+                          {user.email}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <button
                     onClick={() => {
                       logout();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full text-left px-4 py-3 rounded-lg text-base font-medium text-gray-300 hover:bg-gray-800 transition-all"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-gray-300 hover:bg-gray-800 active:bg-gray-700 transition-all"
                   >
-                    Logout
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
                   </button>
-                </>
+                </div>
               ) : (
                 <div className="space-y-2">
                   <Link
@@ -201,7 +242,10 @@ export default function Navbar() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block"
                   >
-                    <Button variant="ghost" className="w-full">
+                    <Button variant="ghost" className="w-full justify-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                      </svg>
                       Login
                     </Button>
                   </Link>
@@ -210,7 +254,10 @@ export default function Navbar() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block"
                   >
-                    <Button variant="primary" className="w-full">
+                    <Button variant="primary" className="w-full justify-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                      </svg>
                       Register
                     </Button>
                   </Link>
