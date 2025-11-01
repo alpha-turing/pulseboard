@@ -22,14 +22,14 @@ export default function Skeleton({
     rectangular: 'rounded-lg',
   };
 
-  const defaultSizes = {
+  const defaultSizes: Record<string, { width?: string; height: string }> = {
     text: { height: '1rem' },
     circular: { width: '2.5rem', height: '2.5rem' },
     rectangular: { height: '4rem' },
   };
 
   const computedStyle = {
-    width: width || (variant === 'text' ? '100%' : defaultSizes[variant].width),
+    width: width || (variant === 'text' ? '100%' : defaultSizes[variant].width || undefined),
     height: height || defaultSizes[variant].height,
     ...style,
   };
