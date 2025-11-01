@@ -114,7 +114,7 @@ export default function TickerSearch() {
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => query.length > 0 && setIsOpen(true)}
         onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-        placeholder="Search tickers... (Press / )"
+        placeholder=""
         leftIcon={searchIcon}
         className="w-full"
       />

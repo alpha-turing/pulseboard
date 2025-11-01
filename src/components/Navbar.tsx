@@ -18,7 +18,6 @@ export default function Navbar() {
     { 
       name: 'Market', 
       path: '/market', 
-      key: 'm', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -28,7 +27,6 @@ export default function Navbar() {
     { 
       name: 'Instruments', 
       path: '/instruments', 
-      key: 'i', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -38,7 +36,6 @@ export default function Navbar() {
     ...(user ? [{
       name: 'Watchlist', 
       path: '/watchlist', 
-      key: 'w', 
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -82,12 +79,7 @@ export default function Navbar() {
                 <span className={`transition-transform duration-200 ${isActive(item.path) ? '' : 'group-hover:scale-110'}`}>
                   {item.icon}
                 </span>
-                <span>{item.name}</span>
-                {!isActive(item.path) && (
-                  <kbd className="hidden xl:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-gray-500 bg-gray-900 border border-gray-700 rounded">
-                    g+{item.key}
-                  </kbd>
-                )}
+                <span>{item.name}</span>          
                 {isActive(item.path) && (
                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full" />
                 )}

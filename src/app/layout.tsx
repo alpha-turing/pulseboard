@@ -7,7 +7,7 @@ import Providers from './providers';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Pulseboard - Market Intelligence powered by polygon.io',
+  title: 'Pulseboard - Market Intelligence Dashboard',
   description: 'One screen to see, explain, and export the market. Real-time financial data, news, and analytics.',
   keywords: ['stocks', 'finance', 'market data', 'trading', 'analytics'],
   authors: [{ name: 'Pulseboard' }],
@@ -44,12 +44,12 @@ export default function RootLayout({
                     <span className="text-xs">
                       Powered by{' '}
                       <a
-                        href="https://polygon.io"
+                        href="https://www.alpha-turing.com"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-brand-primary-400 hover:text-brand-primary-300 transition-colors"
                       >
-                        Polygon.io
+                        Alpha-Turing
                       </a>
                     </span>
                     <span className="text-xs text-gray-600">

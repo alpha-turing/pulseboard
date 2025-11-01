@@ -8,6 +8,14 @@ import { useToast } from '@/contexts/ToastContext';
 import DataTimestamp from '@/components/DataTimestamp';
 import WebSocketStatus from '@/components/WebSocketStatus';
 import { useRealtimePrice } from '@/hooks/useRealtimePrice';
+import { useBreakpoint } from '@/hooks/useMediaQuery';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
+import Skeleton from '@/components/ui/Skeleton';
+import PriceDisplay from '@/components/financial/PriceDisplay';
+import TickerBadge from '@/components/financial/TickerBadge';
+import StatCard from '@/components/financial/StatCard';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 
@@ -17,6 +25,7 @@ function InstrumentsContent() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
+  const { isMobile } = useBreakpoint();
   const [selectedTicker, setSelectedTicker] = useState(searchParams.get('ticker') || 'AAPL');
   const [showExplanation, setShowExplanation] = useState(false);
 
@@ -182,54 +191,60 @@ function InstrumentsContent() {
   const volume = realtimeData?.accumulated_volume || latestBar?.v || 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Instruments</h1>
-          <p className="text-gray-400 mt-1">Search, analyze, and monitor instruments</p>
+          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-primary-400 to-brand-secondary-400 bg-clip-text text-transparent">
+            Instruments
+          </h1>
+          <p className="text-gray-400 text-sm md:text-base mt-1">Search, analyze, and monitor instruments</p>
         </div>
         <WebSocketStatus />
       </div>
 
       {/* Selected Ticker Display */}
       {selectedTicker && (
-        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-4xl font-bold text-white">{selectedTicker}</h2>
+        <Card variant="elevated" className="p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 md:gap-3 mb-2">
+                <TickerBadge ticker={selectedTicker} size={isMobile ? 'md' : 'lg'} variant="gradient" />
                 {realtimeData && (
-                  <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Live data" />
+                  <Badge variant="success" size="sm">
+                    <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
+                    Live
+                  </Badge>
                 )}
               </div>
-              <p className="text-gray-400 mt-1">{selectedTicker} Inc.</p>
+              <p className="text-gray-400 text-sm md:text-base">{selectedTicker} Inc.</p>
             </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-white">${currentPrice.toFixed(2)}</div>
-              <div className={`text-lg font-semibold ${change >= 0 ? 'text-success' : 'text-danger'}`}>
-                {change >= 0 ? '+' : ''}{change.toFixed(2)} ({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)
-              </div>
+            <div className="w-full sm:w-auto">
+              <PriceDisplay 
+                price={currentPrice} 
+                changePercent={changePercent}
+                size={isMobile ? 'md' : 'lg'}
+              />
             </div>
           </div>
 
           {/* Additional metrics */}
-          <div className="grid grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-800">
-            <div>
-              <div className="text-gray-400 text-sm">High</div>
-              <div className="text-white font-semibold">${high.toFixed(2)}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-800">
+            <div className="bg-gray-800/50 p-3 md:p-4 rounded-lg">
+              <div className="text-gray-400 text-xs md:text-sm mb-1">High</div>
+              <div className="text-white font-bold text-base md:text-lg font-mono">${high.toFixed(2)}</div>
             </div>
-            <div>
-              <div className="text-gray-400 text-sm">Low</div>
-              <div className="text-white font-semibold">${low.toFixed(2)}</div>
+            <div className="bg-gray-800/50 p-3 md:p-4 rounded-lg">
+              <div className="text-gray-400 text-xs md:text-sm mb-1">Low</div>
+              <div className="text-white font-bold text-base md:text-lg font-mono">${low.toFixed(2)}</div>
             </div>
-            <div>
-              <div className="text-gray-400 text-sm">Volume</div>
-              <div className="text-white font-semibold">{(volume / 1000000).toFixed(2)}M</div>
+            <div className="bg-gray-800/50 p-3 md:p-4 rounded-lg">
+              <div className="text-gray-400 text-xs md:text-sm mb-1">Volume</div>
+              <div className="text-white font-bold text-base md:text-lg font-mono">{(volume / 1000000).toFixed(2)}M</div>
             </div>
-            <div>
-              <div className="text-gray-400 text-sm">Prev Close</div>
-              <div className="text-white font-semibold">${prevDayClose.toFixed(2)}</div>
+            <div className="bg-gray-800/50 p-3 md:p-4 rounded-lg">
+              <div className="text-gray-400 text-xs md:text-sm mb-1">Prev Close</div>
+              <div className="text-white font-bold text-base md:text-lg font-mono">${prevDayClose.toFixed(2)}</div>
             </div>
           </div>
 
@@ -243,14 +258,14 @@ function InstrumentsContent() {
               />
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Chart */}
-      <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-        <h3 className="text-xl font-bold text-white mb-4">30-Day Price Chart</h3>
+      <Card variant="elevated" className="p-4 md:p-6">
+        <h3 className="text-lg md:text-xl font-bold text-white mb-4">30-Day Price Chart</h3>
         {chartLoading ? (
-          <div className="h-64 bg-gray-800 rounded skeleton" />
+          <Skeleton className="h-64 md:h-[300px] rounded-lg" />
         ) : chartPoints.length > 0 ? (
           <>
             <HighchartsReact
@@ -412,104 +427,133 @@ function InstrumentsContent() {
             No chart data available
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Actions */}
-      <div className="flex gap-4">
-        <button
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+        <Button
           onClick={handleExplain}
           disabled={explainLoading}
-          className="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50"
+          variant="primary"
+          size={isMobile ? 'md' : 'lg'}
+          className="flex-1"
         >
-          {explainLoading ? 'Analyzing...' : '🔍 Explain this move'}
-        </button>
-        <button
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          {explainLoading ? 'Analyzing...' : 'Explain this move'}
+        </Button>
+        <Button
           onClick={handleAddToWatchlist}
           disabled={isInWatchlist}
-          className={`flex-1 font-semibold py-3 px-6 rounded-lg transition-colors ${
-            isInWatchlist 
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
-              : 'bg-success hover:bg-success/90 text-white'
-          }`}
+          variant={isInWatchlist ? 'secondary' : 'success'}
+          size={isMobile ? 'md' : 'lg'}
+          className="flex-1"
         >
-          {isInWatchlist ? '✓ In Watchlist' : '⭐ Add to Watchlist'}
-        </button>
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+          {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+        </Button>
       </div>
 
       {/* Explanation */}
       {showExplanation && explanation && (
-        <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <h3 className="text-xl font-bold text-white">Analysis</h3>
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-              explanation.confidence === 'high' ? 'bg-success/20 text-success' :
-              explanation.confidence === 'medium' ? 'bg-warning/20 text-warning' :
-              'bg-gray-700 text-gray-300'
-            }`}>
+        <Card variant="elevated" className="p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-r from-brand-primary-500 to-brand-secondary-500 flex items-center justify-center">
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg md:text-xl font-bold text-white">Analysis</h3>
+            </div>
+            <Badge 
+              variant={
+                explanation.confidence === 'high' ? 'success' :
+                explanation.confidence === 'medium' ? 'warning' :
+                'neutral'
+              }
+              size={isMobile ? 'sm' : 'md'}
+            >
               {explanation.confidence} confidence
-            </span>
+            </Badge>
           </div>
-          <p className="text-gray-300 text-lg mb-4">{explanation.explanation}</p>
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-gray-400 text-sm">Change</div>
-              <div className={`text-2xl font-bold ${explanation.change >= 0 ? 'text-success' : 'text-danger'}`}>
-                {explanation.change >= 0 ? '+' : ''}{explanation.change.toFixed(2)}
-              </div>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-gray-400 text-sm">Change %</div>
-              <div className={`text-2xl font-bold ${explanation.changePercent >= 0 ? 'text-success' : 'text-danger'}`}>
-                {explanation.changePercent >= 0 ? '+' : ''}{explanation.changePercent.toFixed(2)}%
-              </div>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-gray-400 text-sm">Volume Ratio</div>
-              <div className={`text-2xl font-bold ${explanation.abnormalVolume ? 'text-warning' : 'text-white'}`}>
+          <p className="text-gray-300 text-base md:text-lg mb-4 md:mb-6">{explanation.explanation}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
+            <StatCard
+              title="Change"
+              value={`${explanation.change >= 0 ? '+' : ''}${explanation.change.toFixed(2)}`}
+              trend={explanation.change >= 0 ? 'up' : 'down'}
+            />
+            <StatCard
+              title="Change %"
+              value={`${explanation.changePercent >= 0 ? '+' : ''}${explanation.changePercent.toFixed(2)}%`}
+              trend={explanation.changePercent >= 0 ? 'up' : 'down'}
+            />
+            <div className="bg-gray-800/50 p-3 md:p-4 rounded-lg">
+              <div className="text-gray-400 text-xs md:text-sm mb-1">Volume Ratio</div>
+              <div className={`text-xl md:text-2xl font-bold ${explanation.abnormalVolume ? 'text-warning' : 'text-white'}`}>
                 {explanation.volumeRatio.toFixed(1)}x
               </div>
             </div>
           </div>
           {explanation.newsItems.length > 0 && (
             <div>
-              <h4 className="font-semibold text-white mb-2">Related News</h4>
+              <h4 className="font-semibold text-white mb-2 md:mb-3">Related News</h4>
               <ul className="space-y-2">
                 {explanation.newsItems.slice(0, 3).map((item: any, idx: number) => (
-                  <li key={idx} className="text-sm text-gray-400">
-                    • {item.title}
+                  <li key={idx} className="text-xs md:text-sm text-gray-400 flex items-start">
+                    <span className="text-brand-primary-400 mr-2">•</span>
+                    <span>{item.title}</span>
                   </li>
                 ))}
               </ul>
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* News Timeline */}
-      <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-        <h3 className="text-xl font-bold text-white mb-4">News Timeline</h3>
+      <Card variant="elevated" className="p-4 md:p-6">
+        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-r from-brand-primary-500/20 to-brand-secondary-500/20 flex items-center justify-center">
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-brand-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+            </svg>
+          </div>
+          <h3 className="text-lg md:text-xl font-bold text-white">News Timeline</h3>
+        </div>
         {newsData?.data?.results && newsData.data.results.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {newsData.data.results.map((article: any) => (
-              <div key={article.id} className="border-l-2 border-primary-500 pl-4 py-2">
+              <div key={article.id} className="border-l-2 border-brand-primary-500 pl-3 md:pl-4 py-2 hover:border-brand-primary-400 transition-colors">
                 <a
                   href={article.article_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white hover:text-primary-400 font-semibold"
+                  className="text-white hover:text-brand-primary-400 font-semibold text-sm md:text-base transition-colors line-clamp-2"
                 >
                   {article.title}
                 </a>
-                <div className="text-sm text-gray-400 mt-1">
-                  {article.publisher.name} • {new Date(article.published_utc).toLocaleString()}
+                <div className="text-xs md:text-sm text-gray-400 mt-1 flex items-center gap-2">
+                  <span>{article.publisher.name}</span>
+                  <span className="text-gray-600">•</span>
+                  <span>{new Date(article.published_utc).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                  })}</span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-gray-400">No recent news available</div>
+          <div className="text-center py-8 text-gray-400 text-sm md:text-base">No recent news available</div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
