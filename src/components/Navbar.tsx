@@ -15,9 +15,36 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { name: 'Market', path: '/market', key: 'm', icon: '📈' },
-    { name: 'Instruments', path: '/instruments', key: 'i', icon: '📊' },
-    ...(user ? [{ name: 'Watchlist', path: '/watchlist', key: 'w', icon: '⭐' }] : []),
+    { 
+      name: 'Market', 
+      path: '/market', 
+      key: 'm', 
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+      )
+    },
+    { 
+      name: 'Instruments', 
+      path: '/instruments', 
+      key: 'i', 
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      )
+    },
+    ...(user ? [{
+      name: 'Watchlist', 
+      path: '/watchlist', 
+      key: 'w', 
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+      )
+    }] : []),
   ];
 
   const isActive = (path: string) => pathname === path;
@@ -37,23 +64,33 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation - Hidden on mobile */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-2">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 href={item.path}
                 className={`
-                  px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                  group relative px-4 py-2.5 rounded-xl text-sm font-semibold 
+                  transition-all duration-200 flex items-center gap-2
                   ${
                     isActive(item.path)
-                      ? 'bg-brand-primary-500 text-white shadow-lg shadow-brand-primary-500/30'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                      ? 'bg-gradient-to-r from-brand-primary-500 to-brand-primary-600 text-white shadow-lg shadow-brand-primary-500/40'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-800/80'
                   }
                 `}
               >
-                <span className="hidden xl:inline">{item.icon} </span>
-                {item.name}
-                <span className="ml-2 text-xs text-gray-500">g+{item.key}</span>
+                <span className={`transition-transform duration-200 ${isActive(item.path) ? '' : 'group-hover:scale-110'}`}>
+                  {item.icon}
+                </span>
+                <span>{item.name}</span>
+                {!isActive(item.path) && (
+                  <kbd className="hidden xl:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-gray-500 bg-gray-900 border border-gray-700 rounded">
+                    g+{item.key}
+                  </kbd>
+                )}
+                {isActive(item.path) && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full" />
+                )}
               </Link>
             ))}
           </div>
@@ -114,25 +151,37 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-800 bg-gray-900/95 backdrop-blur-lg animate-slide-down">
-          <div className="container-responsive max-w-7xl mx-auto py-4 space-y-1">
+        <div className="lg:hidden border-t border-gray-800 bg-gray-900/98 backdrop-blur-xl animate-slide-down shadow-2xl">
+          <div className="container-responsive max-w-7xl mx-auto py-4 space-y-2">
             {/* Navigation Links */}
-            {navItems.map((item) => (
+            {navItems.map((item, index) => (
               <Link
                 key={item.path}
                 href={item.path}
                 onClick={() => setIsMobileMenuOpen(false)}
+                style={{ animationDelay: `${index * 50}ms` }}
                 className={`
-                  flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all
+                  group flex items-center gap-4 px-4 py-4 rounded-xl text-base font-semibold 
+                  transition-all duration-200 animate-slide-up relative overflow-hidden
                   ${
                     isActive(item.path)
-                      ? 'bg-brand-primary-500 text-white shadow-lg'
-                      : 'text-gray-300 hover:bg-gray-800'
+                      ? 'bg-gradient-to-r from-brand-primary-500 to-brand-primary-600 text-white shadow-lg shadow-brand-primary-500/30'
+                      : 'text-gray-300 hover:bg-gray-800 active:bg-gray-700'
                   }
                 `}
               >
-                <span className="text-xl">{item.icon}</span>
-                {item.name}
+                {isActive(item.path) && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r" />
+                )}
+                <span className={`transition-transform duration-200 ${isActive(item.path) ? '' : 'group-hover:scale-110 group-active:scale-95'}`}>
+                  {item.icon}
+                </span>
+                <span className="flex-1">{item.name}</span>
+                {isActive(item.path) && (
+                  <svg className="w-5 h-5 text-white/80" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                )}
               </Link>
             ))}
 
@@ -182,23 +231,50 @@ export default function Navbar() {
 
       {/* Bottom Navigation for Mobile (Alternative) */}
       {isMobile && !isMobileMenuOpen && (
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-lg border-t border-gray-800 z-sticky lg:hidden">
-          <div className="flex justify-around items-center h-16">
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/98 backdrop-blur-xl border-t border-gray-800 z-sticky lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
+          <div className="flex justify-around items-center h-16 px-2">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 href={item.path}
                 className={`
-                  flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all
+                  group relative flex flex-col items-center justify-center gap-1.5 flex-1 h-full 
+                  rounded-xl transition-all duration-200 touch-target
                   ${
                     isActive(item.path)
-                      ? 'text-brand-primary-400 bg-brand-primary-500/10'
-                      : 'text-gray-400'
+                      ? 'text-brand-primary-400'
+                      : 'text-gray-500 active:bg-gray-800/50'
                   }
                 `}
               >
-                <span className="text-2xl">{item.icon}</span>
-                <span className="text-xs font-medium">{item.name}</span>
+                {/* Active indicator */}
+                {isActive(item.path) && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600 rounded-full" />
+                )}
+                
+                {/* Icon with animated background */}
+                <div className={`
+                  relative transition-all duration-200
+                  ${isActive(item.path) ? 'scale-110' : 'group-active:scale-90'}
+                `}>
+                  {isActive(item.path) && (
+                    <div className="absolute inset-0 bg-brand-primary-500/20 rounded-lg blur-xl" />
+                  )}
+                  <div className={`
+                    relative p-1.5 rounded-lg transition-all
+                    ${isActive(item.path) ? 'bg-brand-primary-500/10' : ''}
+                  `}>
+                    {item.icon}
+                  </div>
+                </div>
+                
+                {/* Label */}
+                <span className={`
+                  text-[10px] font-semibold transition-all
+                  ${isActive(item.path) ? 'text-brand-primary-400' : 'text-gray-500 group-active:text-gray-400'}
+                `}>
+                  {item.name}
+                </span>
               </Link>
             ))}
           </div>
