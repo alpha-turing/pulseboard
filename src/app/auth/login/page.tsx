@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -29,63 +32,97 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center">
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-white mb-6">Login</h1>
-
-        {error && (
-          <div className="bg-danger/10 border border-danger rounded-lg p-3 mb-4">
-            <p className="text-danger text-sm">{error}</p>
+    <div className="min-h-[80vh] flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-brand-primary-500 to-brand-secondary-500 rounded-2xl shadow-lg shadow-brand-primary-500/30 mb-4">
+            <span className="text-white font-bold text-3xl">P</span>
           </div>
-        )}
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-brand-primary-400 to-brand-secondary-400 bg-clip-text text-transparent mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-gray-400 text-sm">
+            Sign in to access your market dashboard
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-              Email
-            </label>
-            <input
+        <Card className="animate-slide-up">
+          {error && (
+            <div className="bg-danger/10 border border-danger/50 rounded-lg p-4 mb-6 animate-slide-down">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <p className="text-danger text-sm font-medium">Authentication Failed</p>
+                  <p className="text-danger/80 text-xs mt-1">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              label="Email Address"
               placeholder="you@example.com"
+              leftIcon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                </svg>
+              }
             />
-          </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-              Password
-            </label>
-            <input
+            <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="••••••••"
+              label="Password"
+              placeholder="Enter your password"
+              leftIcon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              }
             />
+
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={loading}
+              className="w-full"
+              size="lg"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-800">
+            <p className="text-gray-400 text-sm text-center">
+              Don't have an account?{' '}
+              <Link
+                href="/auth/register"
+                className="text-brand-primary-400 hover:text-brand-primary-300 font-semibold transition-colors"
+              >
+                Create one now →
+              </Link>
+            </p>
           </div>
+        </Card>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-
-        <p className="text-gray-400 text-sm mt-6 text-center">
-          Don't have an account?{' '}
-          <Link href="/auth/register" className="text-primary-500 hover:text-primary-400">
-            Register here
-          </Link>
+        {/* Additional info */}
+        <p className="text-center text-xs text-gray-600 mt-6">
+          By signing in, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
     </div>
   );
 }
+
